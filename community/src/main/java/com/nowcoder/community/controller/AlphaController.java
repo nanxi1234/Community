@@ -1,15 +1,17 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.service.AlphaService;
+import com.nowcoder.community.util.CommunityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.Banner;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
@@ -23,7 +25,11 @@ public class AlphaController {
     private AlphaService alphaService;
 
     @RequestMapping("/hello")
-    @ResponseBody
+    @ResponseBody//单独使用@Controller不加@ResponseBody：一般在用在要返回一个视图的情况，对应前后端不分离的情况
+    /*@Controller +@ResponseBody返回JSON或XML
+    @ResponseBody注解的作用是将Controller的方法返回的对象通过适当的转换器转换成指定的格式之后
+    写入到HTTP响应(Response)对象的body中
+     */
     public String sayHello() {
         return "hello Springboot.";
     }
@@ -113,6 +119,49 @@ public class AlphaController {
         return emp;
 
     }
+//cookie示例
+    @RequestMapping(path = "/cookie/set",method = RequestMethod.GET)
+    @ResponseBody//响应：返回json字符串
+    public String setCookie(HttpServletResponse response){
+        //创建cookie，存放在Response里面
+        Cookie cookie=new Cookie("code", CommunityUtil.generateUUID());
+        //设置生效的范围：在哪些路径需要cookie
+        cookie.setPath("/community/alpha");
+        //设置cookie的生存时间
+        cookie.setMaxAge(60*10);
+        response.addCookie(cookie);//放到Response的头部
+        return "setCookie";
+    }
+    //Http是无状态的，服务器要识别他需要一些工作
+   //Cookie是服务器发送到浏览器，并保存在浏览器端的一小块数据
+    //浏览器下次访问该服务器时，会自动携带该数据，并将其发送给服务器
+   @RequestMapping(path = "/cookie/get", method = RequestMethod.GET)
+   @ResponseBody
+   public String getCookie(@CookieValue("code") String code) {//@CookieValue获取cookie
+        System.out.println(code);
+       return "get cookie";
+   }
+    //Session
+    //javaEE标准，用于在服务端记录客服端信息
+    //数据存放在服务端更加安全，有些数据比较隐私可以放在session中，但是会增加服务端的内存压力,能不用就不用
+    @RequestMapping(path = "/session/set",method = RequestMethod.GET)
+    @ResponseBody
+    public String setSession(HttpSession session)
+    {
+        session.setAttribute("id",1);
+        session.setAttribute("name","Test");
+        return "set session";
+    }
+    @RequestMapping(path = "/session/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getSession(HttpSession session) {
+        System.out.println(session.getAttribute("id"));
+        System.out.println(session.getAttribute("name"));
+        return "get session";
+    }
+    //分布式部署时，使用session会有什么问题？
+    //session不同步，解决方案，把session统一放在nosql数据库redis中
+    
+    }
 
 
-}
