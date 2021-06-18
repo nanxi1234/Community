@@ -6,6 +6,7 @@ import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
+import com.nowcoder.community.util.HostHolder;
 import com.nowcoder.community.util.MailClient;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +30,8 @@ public class UserService implements CommunityConstant {
     private TemplateEngine templateEngine;
     @Autowired
     private LoginTicketMapper loginTicketMapper;
-    @Value("${community.path.domin}")//@value注解：从配置文件里面取出值
-    private String domin;
+    @Value("${community.path.domain}")//@value注解：从配置文件里面取出值
+    private String domain;
     @Value("${server.servlet.context-path}")//项目名
     private String contextPath;
 
@@ -81,7 +82,7 @@ public class UserService implements CommunityConstant {
         Context context = new Context();
         context.setVariable("email", user.getEmail());//往哪发?
         //http://localhost:8080/community/activation/101/code
-        String url = domin + contextPath + "/activation/" + user.getId() + "/" +user.getActivationCode();
+        String url = domain + contextPath + "/activation/" + user.getId() + "/" +user.getActivationCode();
         context.setVariable("url", url);
         String content = templateEngine.process("/mail/activation", context);
         mailClient.sendMail(user.getEmail(), "激活账号", content);
@@ -147,5 +148,27 @@ public class UserService implements CommunityConstant {
    public LoginTicket findLoginTicket(String ticket){
         return loginTicketMapper.selectByTicket(ticket);
    }
+   public int updateHeader(int userId,String headUrl){
+        return userMapper.updateHeader(userId,headUrl);
+   }
+   public int updatePassword(int id,String password){
+        return userMapper.updatePassword(id,password);
+   }
+    //个人设置修改密码功能
+    public Map<String,Object> updatePassword(String password,String newPassword,int id){
+        Map<String,Object> map =new HashMap<>();
+        User user = userMapper.selectById(id);
+        password= CommunityUtil.md5(password+user.getSalt());
+        if(!user.getPassword().equals(password)){
+            map.put("passwordMsg","输入密码错误！");
+            return map;
+        }
+        else {//注意：存入新密码要以加密后的形式存进去
+            newPassword= CommunityUtil.md5(newPassword+user.getSalt());
+            userMapper.updatePassword(id,newPassword);
+        }
+
+        return map;
+    }
 }
 

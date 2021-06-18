@@ -16,7 +16,7 @@ public interface UserMapper {//要实现它需要配置文件，给每一个方�
 
     int updateStatus(int id,int status);
 
-    int updateHeadr(int id,String headerUrl);//更新头像的路径
+    int updateHeader(int id,String headerUrl);//更新头像的路径
 
     int updatePassword(int id,String password);//更新密码
 

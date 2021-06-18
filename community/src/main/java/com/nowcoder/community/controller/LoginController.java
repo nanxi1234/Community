@@ -121,9 +121,9 @@ public class LoginController implements CommunityConstant {
              return "/site/login";
          }
   }
-  @RequestMapping(path = "/logout",method = RequestMethod.GET)
-    public String logout(@CookieValue("ticket") String ticket){//将Cookie中ticket的值赋予ticket
-      userService.logout(ticket);
-      return "redirect:/login";
+        @RequestMapping(path = "/logout",method = RequestMethod.GET)
+        public String logout(@CookieValue("ticket") String ticket){//将Cookie中ticket的值赋予ticket
+        userService.logout(ticket);
+        return "redirect:/login";
   }
 }
